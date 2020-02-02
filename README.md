@@ -2,7 +2,7 @@
 🐍 Snake, Yet Another Mach-O Unused ObjC Selector/Class/Protocol Detector.
 
 ## Features
-- [x] No Symbols option required in Strip style of Build Settings
+- [x] No Symbols option required in Strip style of Build Settings, not depends on otool
 - [x] Unused selectors
 - [x] Unsued classes
 - [x] Unused protocols
