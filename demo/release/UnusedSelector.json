@@ -1,0 +1,1 @@
+[{"lib":"demo","class":[{"name":"UnusedClass","selector":[{"name":"-[UnusedClass unusedMethOfUnusedClass]","size":6}]},{"name":"UsedClass","selector":[{"name":"-[UsedClass unusedMeth]","size":6}]}]}]
