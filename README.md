@@ -16,7 +16,7 @@ ObjC Metadata
 	* `__objc_protolist` ✔
 
 ## Features
-- [x] No Symbols option required in Strip style of Build Settings, parse Mach-O directly, __no depends on otool__.
+- [x] Parse Mach-O directly, no Symbols option required in Strip style of Build Settings, __no depends on otool__.
 - [x] Unused selectors.
 - [x] Unsued classes.
 - [x] Unused protocols.
