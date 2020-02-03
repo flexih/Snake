@@ -1,13 +1,27 @@
 # Snake
 🐍 Snake, Yet Another Mach-O Unused ObjC Selector/Class/Protocol Detector.
 
+ObjC Metadata
+* Classes ✔
+* Protocols ✔
+* Methods ✔
+* Categories ✔
+* Binding Info ✔
+* ObjC-Specific Sections
+	* `__objc_selrefs` ✔
+	* `__objc_superrefs` ✔
+	* `__objc_classrefs` ✔
+	* `__objc_classlist` ✔
+	* `__objc_catlist` ✔
+	* `__objc_protolist` ✔
+
 ## Features
-- [x] No Symbols option required in Strip style of Build Settings, not depends on otool
-- [x] Unused selectors
-- [x] Unsued classes
-- [x] Unused protocols
-- [x] Selector/Classes/Protocols sort by library, and selector size,  if  Linkmap file provided
-- [x] Performance
+- [x] No Symbols option required in Strip style of Build Settings, parse Mach_O directly, __no depends on otool__.
+- [x] Unused selectors.
+- [x] Unsued classes.
+- [x] Unused protocols.
+- [x] Selector/Classes/Protocols sort by library, and selector size, if Linkmap file provided.
+- [x] Fast, a 460.6M binary and a 134.3M linkmap file costs 1.62s.
 
 ## How To Use
 ```
