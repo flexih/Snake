@@ -240,7 +240,11 @@ namespace snake {
                         auto offset = iter->offset + i * sizeof(uintptr_t);
                         auto ptr = offset + baseAddr;
                         if (auto n = bindinfoSymAt(ptr)) {
-                            refedClasses.insert(*n);
+                            if (n->size() > 14 && n->find("_OBJC_CLASS_$_") == 0) {
+                                refedClasses.insert(n->substr(14));
+                            } else {
+                                refedClasses.insert(*n);
+                            }
                         }
                     }
                 }
@@ -355,8 +359,10 @@ namespace snake {
     }
     std::set<std::string> Arch::ObjCProtocolsUsed() const {
         std::set<std::string> protocols;
-        for (auto &pair : allClasses) {
-            protocols.insert(pair.second.protocols.begin(), pair.second.protocols.end());
+        for (auto &className : refedClasses) {
+            if (auto iter = allClasses.find(className); iter != allClasses.end()) {
+                protocols.insert(iter->second.protocols.begin(), iter->second.protocols.end());
+            }
         }
         return protocols;
     }
