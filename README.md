@@ -15,6 +15,7 @@ ObjC Metadata
 	* `__objc_catlist` ✔
 	* `__objc_protolist` ✔
 
+See [SnakeKit](https://github.com/flexih/SnakeKit)
 ## Features
 - [x] Parse Mach-O directly, no Symbols option required in Strip style of Build Settings, __no depends on otool__.
 - [x] Unused selectors.
