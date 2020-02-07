@@ -7,3 +7,15 @@
 //
 
 #include "utility.hpp"
+
+namespace snake {
+    std::string trimPath(const std::string &path) {
+        std::string result;
+        for (auto &c : path) {
+            if (c != '\\') {
+                result.append(1, c);
+            }
+        }
+        return result;
+    }
+}

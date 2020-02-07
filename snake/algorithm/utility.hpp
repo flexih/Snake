@@ -11,6 +11,7 @@
 
 #include <set>
 #include <map>
+#include <string>
 
 namespace snake {
     template <class T, class Comp, class Alloc, class Predicate>
@@ -46,6 +47,8 @@ namespace snake {
     auto contains(std::map<Key, T, Comp, Alloc>& c, Key k) {
         return c.find(k) != c.end();
     }
+    
+    std::string trimPath(const std::string &path);
 }
 
 #endif /* utility_hpp */

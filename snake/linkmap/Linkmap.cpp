@@ -47,9 +47,10 @@ namespace snake {
         const char *Path = "Path";
         const char *ObjectFiles = "Object files";
         const char *Symbols = "Symbols";
+        const auto FILELENGTH = 4096;
         
         int state = Op;
-        char buff[255];
+        char buff[FILELENGTH];
         auto p = (char *)pile;
         auto end = p + size;
         char *n = 0;
@@ -57,7 +58,7 @@ namespace snake {
             n[0] = 0;
             if (p[0] == '#') {
                 if (strchr(p, ':') != nullptr) {
-                    if (sscanf(p, "#%*[ ]%[a-zA-Z ]", buff) != 1) {
+                    if (sscanf(p, "#%*[ ]%4095[a-zA-Z ]", buff) != 1) {
                         return false;
                     }
                     if (strcmp(Path, buff) == 0) {
@@ -78,13 +79,15 @@ namespace snake {
                         state += 1;
                         if (state == OpSymbols) {
                             return false;
+                        } else if (state > OpSymbols) {
+                            return true;
                         }
                     }
                 }
             } else if (n > p) {
                 if (state == OpObjectFiles) {
                     int index = 0;
-                    if (sscanf(p, "[%d]%*[ ]%[^\n]", &index, buff) != 2) {
+                    if (sscanf(p, "[%d]%*[ ]%4095[^\n]", &index, buff) != 2) {
                         return false;
                     }
                     std::string compoment(buff);
@@ -93,20 +96,19 @@ namespace snake {
                     auto useParentDirName = false;
                     if (i != std::string::npos && i + 1 < compoment.size()) {
                         last = compoment.substr(i + 1);
-                        //xxx.a(xxx.o)
-                        //xxx.app-Simulated.xcent
-                        //xxx.o
-                        //lib/libc.tbd
-                        //Foundation.framework/Foundation.tbd
-                        //xxx.framework/xxx(xxx.o)
+                            //xxx.a(xxx.o)
+                            //xxx.app-Simulated.xcent
+                            //xxx.o
+                            //lib/libc.tbd
+                            //Foundation.framework/Foundation.tbd
+                            //xxx.framework/xxx(xxx.o)
                         if (last.back() == ')') {
                             auto j = last.rfind('(', std::string::npos);
                             if (j == std::string::npos) {
                                 return false;
                             }
                             if (auto t = last.rfind(".a", j); t != std::string::npos && t + 2 == j) {
-                                last.data()[j] = 0;
-                                addLibName(index, last.data());
+                                addLibName(index, last.substr(0, j));
                             } else {
                                 useParentDirName = true;
                             }
@@ -115,15 +117,15 @@ namespace snake {
                             if (j == std::string::npos) {
                                 useParentDirName = true;
                             } else if (last.compare(j + 1, last.size() - j - 1, "o") == 0) {
-                                addLibName(index, archName.data());
+                                addLibName(index, archName);
                             } else if (last.compare(j + 1, last.size() - j - 1, "tbd") == 0) {
                                 useParentDirName = true;
                             } else {
-                                addLibName(index, last.data());
+                                addLibName(index, last);
                             }
                         }
                     } else {
-                        addLibName(index, compoment.data());
+                        addLibName(index, compoment);
                     }
                     if (useParentDirName) {
                         auto j = compoment.rfind('/', i - 1);
@@ -132,24 +134,24 @@ namespace snake {
                         }
                         auto dirName = compoment.substr(j + 1, i - j - 1);
                         if (dirName.find('.') != std::string::npos) {
-                            addLibName(index, dirName.data());
+                            addLibName(index, dirName);
                         } else {
-                            addLibName(index, last.data());
+                            addLibName(index, last);
                         }
                     }
                 } else if (state == OpSymbols) {
                     int8_t op;
                     size_t index;
                     size_t sz;
-                    //0x1000012D2    0x00000008    [  3] -[AppDelegate application:didFinishLaunchingWithOptions:]
                     if (n[-1] == ']' && sscanf(p, "%*[0-9a-zA-Z]%*[ \t]%zx%*[ \t][%zu]%*[ \t]%[+-]", &sz, &index, &op) == 3) {
                         if (auto pmeth = strchr(p, op); auto split = strchr(pmeth + 1, ' ')) {
-                            insert(index, pmeth + 2, split - pmeth - 2, pmeth, strlen(pmeth), sz);
+                            insert(index, pmeth + 2, split - pmeth - 2, pmeth, n - pmeth, sz);
                         }
-                    } else if (sscanf(p, "%*[0-9a-zA-Z]%*[ \t]%zx%*[ \t][%zu]%*[ \t]%*[l_]OBJC_PROTOCOL_$_%255s", &sz, &index, buff) == 3) {
-                        std::string protocolName = buff;
+                    }
+                    else if (sscanf(p, "%*[0-9a-zA-Z]%*[ \t]%zx%*[ \t][%zu]%*[ \t]%*[l_]OBJC_PROTOCOL_$_%4095s", &sz, &index, buff) == 3) {
+                        std::string protocolName(buff);
                         if (!contains(protocols, protocolName)) {
-                            protocols[buff] = indexs[index];
+                            protocols[std::move(protocolName)] = indexs[index];
                         }
                     }
                 }
@@ -201,7 +203,10 @@ namespace snake {
             }
         }
     }
-    void Linkmap::addLibName(size_t index, char *name) {
+    void Linkmap::addLibName(size_t index, std::string &&name) {
+        addLibName(index, name);
+    }
+    void Linkmap::addLibName(size_t index, std::string &name) {
         indexs[index] = name;
     }
 }

@@ -10,6 +10,7 @@
 #include "Linkmap.hpp"
 #include "Output.hpp"
 #include "cxxopts.hpp"
+#include "utility.hpp"
 
 using namespace snake;
 
@@ -37,12 +38,12 @@ int main(int argc, char * argv[]) {
             exit(0);
         }
         if (result.count("input")) {
-            machoPath = result["input"].as<std::string>();
+            machoPath = trimPath(result["input"].as<std::string>());
         } else {
             throw cxxopts::option_not_present_exception("mach-o");
         }
         if (result.count("linkmap")) {
-            linkmapPath = result["linkmap"].as<std::string>();
+            linkmapPath = trimPath(result["linkmap"].as<std::string>());
         }
         if (result.count("s")) {
             function = 's';

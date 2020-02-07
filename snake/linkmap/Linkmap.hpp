@@ -47,7 +47,8 @@ namespace snake {
         bool parse();
         void filter();
         void insert(size_t index, char *pName, size_t l1, char *pMeth, size_t l2, size_t size);
-        void addLibName(size_t index, char *name);
+        void addLibName(size_t index, std::string &name);
+        void addLibName(size_t index, std::string &&name);
         void *pile {nullptr};
         size_t size {0};
         std::string archName;
