@@ -16,6 +16,7 @@
 #define RO_META               (1<<0)
 #define RO_ROOT               (1<<1)
 #define RO_HAS_CXX_STRUCTORS  (1<<2)
+#define FAST_DATA_MASK 0x00007ffffffffff8UL
 
 namespace snake {
     Arch::Arch(struct mach_header_64 *header, const char *beg): mach_header(*header), arch(beg), baseAddr((uintptr_t)-1) {
@@ -176,7 +177,7 @@ namespace snake {
                 }
                 for (auto classRef : classRefs) {
                     objc_class *oclass = (objc_class *)POINTER(classRef);
-                    class_ro_t *ro = (class_ro_t *)POINTER(oclass->bits);
+                    class_ro_t *ro = (class_ro_t *)POINTER(oclass->bits & FAST_DATA_MASK);
                     auto isMeta = ro->flags & RO_META;
                     auto objcClass = ObjCClassForName(POINTER(ro->name));
                     objcmethdlist(objcClass, ro->baseMethods, isMeta);
@@ -233,7 +234,7 @@ namespace snake {
                     uintptr_t classRef = beg[i];
                     if (classRef) {
                         objc_class *oclass = (objc_class *)POINTER(classRef);
-                        class_ro_t *ro = (class_ro_t *)POINTER(oclass->bits);
+                        class_ro_t *ro = (class_ro_t *)POINTER(oclass->bits & FAST_DATA_MASK);
                         refedClasses.insert(POINTER(ro->name));
                     } else {
                         //pointer(offset+base_addr) in bind info
@@ -292,7 +293,7 @@ namespace snake {
                     auto cat = (struct category_t *)POINTER(catRefPtr[i]);
                     if (cat->cls) {
                         objc_class *oclass = (objc_class *)POINTER(cat->cls);
-                        class_ro_t *ro = (class_ro_t *)POINTER(oclass->bits);
+                        class_ro_t *ro = (class_ro_t *)POINTER(oclass->bits & FAST_DATA_MASK);
                         objcClass = ObjCClassForName(POINTER(ro->name));
                     } else if (auto n = bindinfoSymAt(catRefPtr[i] + sizeof(uintptr_t))) {
                         if (auto i = n->find("_OBJC_CLASS_$_"); i != std::string::npos) {
