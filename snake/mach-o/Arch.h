@@ -26,6 +26,7 @@ namespace snake {
         std::map<std::string, ObjCClass> ObjCSelectorsUnused() const;
     private:
         std::set<std::string> ObjCProtocolsUsed() const;
+        std::set<std::string> ObjCClassesUsed() const;
         void parseSections();
         void handleBindinfo();
         void handleObjCSections();

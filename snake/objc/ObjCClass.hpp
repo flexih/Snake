@@ -17,6 +17,7 @@
 namespace snake {
     struct ObjCClass {
         std::string name;
+        std::string super;
         std::vector<ObjCClass> cats;
         std::set<std::string> protocols;
         std::set<std::string> instanceMethods;

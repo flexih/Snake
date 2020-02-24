@@ -182,6 +182,19 @@ namespace snake {
                     auto objcClass = ObjCClassForName(POINTER(ro->name));
                     objcmethdlist(objcClass, ro->baseMethods, isMeta);
                     objcprotocollist(objcClass, ro->baseProtocols);
+                    if (!isMeta) {
+                        if (oclass->superclass) {
+                            objc_class *superclass = (objc_class *)POINTER(oclass->superclass);
+                            class_ro_t *ro = (class_ro_t *)POINTER(superclass->bits & FAST_DATA_MASK);
+                            objcClass->super = POINTER(ro->name);
+                        } else if (auto n = bindinfoSymAt(classRef + sizeof(uintptr_t))) {
+                            if (n->size() > 14 && n->find("_OBJC_CLASS_$_") == 0) {
+                                objcClass->super = n->substr(14);
+                            } else {
+                                objcClass->super = *n;
+                            }
+                        }
+                    }
                 }
                 break;
             }
@@ -360,7 +373,7 @@ namespace snake {
     }
     std::set<std::string> Arch::ObjCProtocolsUsed() const {
         std::set<std::string> protocols;
-        for (auto &className : refedClasses) {
+        for (auto &className : ObjCClassesUsed()) {
             if (auto iter = allClasses.find(className); iter != allClasses.end()) {
                 protocols.insert(iter->second.protocols.begin(), iter->second.protocols.end());
             }
@@ -384,11 +397,28 @@ namespace snake {
         }
         return keys;
     }
+    std::set<std::string> Arch::ObjCClassesUsed() const {
+        auto result = refedClasses;
+        for (auto &c : refedClasses) {
+            const std::string *pName = &c;
+            while (1) {
+                auto iter = allClasses.find(*pName);
+                if (iter != allClasses.end() && !iter->second.super.empty() && !contains(result, iter->second.super)) {
+                    result.insert(iter->second.super);
+                    pName = &iter->second.super;
+                } else {
+                    break;
+                }
+            }
+        }
+        return result;
+    }
     std::vector<std::string> Arch::ObjCClassesUnused() const {
         std::vector<std::string> unused;
         unused.reserve(allClasses.size());
+        auto usedClasses = ObjCClassesUsed();
         for (auto &c : allClasses) {
-            if (refedClasses.find(c.first) == refedClasses.end()) {
+            if (!contains(usedClasses, c.first)) {
                 unused.push_back(c.first);
             }
         }
