@@ -67,6 +67,12 @@ Total Unused Selector: 2
 -[UsedClass unusedMeth]	6
 ```
 
+## Storyboard
+Used selectors
+```
+python2 storyboard.py path/to/x.storyboard
+```
+
 ## Source
 
 git clone --recursive https://github.com/flexih/Snake.git
