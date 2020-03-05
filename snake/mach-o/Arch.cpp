@@ -27,9 +27,13 @@ namespace snake {
         internalClassSelectors.insert("load");
         internalClassSelectors.insert("initialize");
     }
-    void Arch::parse() {
+    bool Arch::parse() {
+        if (mach_header.filetype != MH_EXECUTE) {
+            return false;
+        }
         parseSections();
         handleObjCSections();
+        return true;
     }
     const char *Arch::POINTER(uintptr_t x) {
         return arch + x - baseAddr;
@@ -325,6 +329,29 @@ namespace snake {
             }
         }
     }
+    void Arch::handleSymtab() {
+        auto nlistRef = (struct nlist_64 *)(arch + symtab.symoff);
+        auto strlist = arch + symtab.stroff;
+        for (auto i = 0; i < symtab.nsyms; ++i) {
+            auto n_list = nlistRef[i];
+            if (n_list.n_sect != NO_SECT && n_list.n_value > 0) {
+                symtabs[n_list.n_value] = strlist + n_list.n_un.n_strx;
+            }
+        }
+    }
+    std::vector<std::string> Arch::parseDyld() {
+        std::vector<std::string> result;
+        size_t offset = sizeof(mach_header);
+        for (auto loadcommand : allLoadCommdands) {
+            if (loadcommand->cmd == LC_LOAD_DYLIB) {
+                auto dylib_command = (struct dylib_command *)loadcommand;
+                auto name = arch + offset + dylib_command->dylib.name.offset;
+                result.push_back(name);
+            }
+            offset += loadcommand->cmdsize;
+        }
+        return result;
+    }
     void Arch::parseSections() {
         size_t offset = 0;
         const char *beg = arch + sizeof(mach_header);
@@ -352,6 +379,7 @@ namespace snake {
                 default:
                     break;
             }
+            allLoadCommdands.push_back(loadcommand);
             offset += loadcommand->cmdsize;
         }
     }

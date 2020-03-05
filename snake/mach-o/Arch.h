@@ -17,24 +17,27 @@ namespace snake {
     class Arch {
     public:
         Arch(struct mach_header_64 *mach_header, const char *beg);
-        void parse();
+        bool parse();
         std::vector<std::string> ObjCClasses() const;
         std::vector<std::string> ObjCProtocols() const;
         std::vector<std::string> ObjCSelectors() const;
         std::vector<std::string> ObjCClassesUnused() const;
         std::vector<std::string> ObjCProtocolsUnused() const;
         std::map<std::string, ObjCClass> ObjCSelectorsUnused() const;
-    private:
-        std::set<std::string> ObjCProtocolsUsed() const;
-        std::set<std::string> ObjCClassesUsed() const;
+    protected:
         void parseSections();
         void handleBindinfo();
-        void handleObjCSections();
         void handleClasslist();
         void handleUsedSelectors();
         void handleProtocolist();
         void handleUsedClasses();
         void handleCategory();
+        void handleSymtab();
+        std::vector<std::string> parseDyld();
+    private:
+        void handleObjCSections();
+        std::set<std::string> ObjCProtocolsUsed() const;
+        std::set<std::string> ObjCClassesUsed() const;
         const char *POINTER(uintptr_t x);
         const char *OFFSET(uintptr_t x);
         ObjCClass* ObjCClassForName(const char *name);
@@ -63,5 +66,6 @@ namespace snake {
         std::set<std::string> internalClassSelectors;
 
         std::map<uintptr_t, std::string> bindSyms;
+        std::map<uintptr_t, std::string> symtabs;
     };
 }

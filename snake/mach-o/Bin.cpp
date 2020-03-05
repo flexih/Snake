@@ -76,7 +76,7 @@ namespace snake {
             case MH_MAGIC_64:
             case MH_CIGAM_64: {
                 Arch arch = Arch((struct mach_header_64 *)p, (const char *)p);
-                arch.parse();
+                if (!arch.parse()) return false;
                 archs.push_back(std::move(arch));
                 return true;
             }
