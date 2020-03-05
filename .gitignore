@@ -34,7 +34,7 @@
 # Executables
 *.exe
 *.out
-*.app
+#*.app
 
 ### macOS ###
 # General

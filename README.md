@@ -40,6 +40,8 @@ Usage:
       --help         Print help
 ```
 
+snake -l path/to/linkmap path/to/macho [-scp]
+
 ## Example
 bin/snake  -l demo/release/demo-LinkMap-normal-x86_64.txt demo/release/demo.app/demo -c
 ```
