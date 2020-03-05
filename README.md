@@ -77,6 +77,10 @@ python2 storyboard.py path/to/x.storyboard
 
 git clone --recursive https://github.com/flexih/Snake.git
 
+## Details
+
+[Objective-C二进制瘦身](https://www.jianshu.com/p/e3cf048c67aa)
+
 ## Credits
 
 * [cxxopts](https://github.com/jarro2783/cxxopts)
