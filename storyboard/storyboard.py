@@ -30,7 +30,6 @@ class Vistor(xml.sax.ContentHandler):
             print '-[{0} {1}]'.format(self.tags[action[1]], action[0])
         for outlet in self.outlets:
             for prop in outlet[1]:
-                print '-[{0} get{1}:]'.format(outlet[0], prop.capitalize())
                 print '-[{0} set{1}:]'.format(outlet[0], prop.capitalize())
 
 def handleStoryboard(path):
