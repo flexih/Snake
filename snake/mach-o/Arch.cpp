@@ -36,6 +36,15 @@ namespace snake {
         return true;
     }
     const char *Arch::POINTER(uintptr_t x) {
+        for (auto loadcommand : allLoadCommdands) {
+            if (loadcommand->cmd == LC_SEGMENT_64) {
+                auto segment = (const struct segment_command_64 *)loadcommand;
+                if (x >= segment->vmaddr && x <= segment->vmaddr + segment->vmsize) {
+                    return arch + x - (segment->vmaddr - baseAddr - segment->fileoff) - baseAddr;
+                }
+            }
+        }
+        assert(0);
         return arch + x - baseAddr;
     }
     const char *Arch::OFFSET(uintptr_t x) {
@@ -169,7 +178,7 @@ namespace snake {
         for (auto iter : allSections) {
             if (strncmp(iter->sectname, "__objc_classlist", std::size(iter->sectname)) == 0) {
                 auto count = iter->size / sizeof(uintptr_t);
-                auto beg = arch + iter->offset;
+                auto beg = OFFSET(iter->offset);
                 std::vector<uintptr_t> classRefs;
                 for (auto i = 0; i < count; ++i) {
                     uintptr_t classRef = *(uintptr_t *)(beg + i * sizeof(uintptr_t));
@@ -233,7 +242,7 @@ namespace snake {
             if (strncmp(iter->sectname, "__objc_selrefs", std::size(iter->sectname)) == 0) {
                 auto count = iter->size / sizeof(uintptr_t);
                 for (auto i = 0; i < count; ++i) {
-                    auto beg = arch + iter->offset;
+                    auto beg = OFFSET(iter->offset);
                     uintptr_t methodNamePtr = *(uintptr_t *)(beg + i * sizeof(uintptr_t));
                     usedSelectors.insert(POINTER(methodNamePtr));
                 }
@@ -246,7 +255,7 @@ namespace snake {
             if ((strncmp(iter->sectname, "__objc_classrefs", std::size(iter->sectname)) == 0 ||
                  strncmp(iter->sectname, "__objc_superrefs", std::size(iter->sectname)) == 0)) {
                 auto count = iter->size / sizeof(uintptr_t);
-                auto beg = (uintptr_t *)(arch + iter->offset);
+                auto beg = (uintptr_t *)OFFSET(iter->offset);
                 for (auto i = 0; i < count; ++i) {
                     uintptr_t classRef = beg[i];
                     if (classRef) {
@@ -274,7 +283,7 @@ namespace snake {
         for (auto iter : allSections) {
             if (strncmp(iter->sectname, "__objc_protolist", std::size(iter->sectname)) == 0) {
                 auto count = iter->size / sizeof(uintptr_t);
-                auto protocolRefPtr = (uintptr_t *)(arch + iter->offset);
+                auto protocolRefPtr = (uintptr_t *)OFFSET(iter->offset);
                 for (auto i = 0; i < count; ++i) {
                     auto protocol = (struct protocol_t *)POINTER(protocolRefPtr[i]);
                     auto objcProtol = ObjCProtolForName(POINTER(protocol->name));
@@ -303,7 +312,7 @@ namespace snake {
         for (auto iter : allSections) {
             if (strncmp(iter->sectname, "__objc_catlist", std::size(iter->sectname)) == 0) {
                 auto count = iter->size / sizeof(uintptr_t);
-                auto catRefPtr = (uintptr_t *)(arch + iter->offset);
+                auto catRefPtr = (uintptr_t *)OFFSET(iter->offset);
                 for (auto i = 0; i < count; ++i) {
                     ObjCClass *objcClass = nullptr;
                     ObjCClass *catClass = nullptr;
@@ -330,8 +339,8 @@ namespace snake {
         }
     }
     void Arch::handleSymtab() {
-        auto nlistRef = (struct nlist_64 *)(arch + symtab.symoff);
-        auto strlist = arch + symtab.stroff;
+        auto nlistRef = (struct nlist_64 *)OFFSET(symtab.symoff);
+        auto strlist = OFFSET(symtab.stroff);
         for (auto i = 0; i < symtab.nsyms; ++i) {
             auto n_list = nlistRef[i];
             if (n_list.n_sect != NO_SECT && n_list.n_value > 0) {
@@ -345,7 +354,7 @@ namespace snake {
         for (auto loadcommand : allLoadCommdands) {
             if (loadcommand->cmd == LC_LOAD_DYLIB) {
                 auto dylib_command = (struct dylib_command *)loadcommand;
-                auto name = arch + offset + dylib_command->dylib.name.offset;
+                auto name = OFFSET(offset) + dylib_command->dylib.name.offset;
                 result.push_back(name);
             }
             offset += loadcommand->cmdsize;
@@ -354,7 +363,7 @@ namespace snake {
     }
     void Arch::parseSections() {
         size_t offset = 0;
-        const char *beg = arch + sizeof(mach_header);
+        const char *beg = OFFSET(sizeof(mach_header));
         for (size_t i = 0; i < mach_header.ncmds; ++i) {
             auto loadcommand = (const struct load_command*)(beg + offset);
             switch (loadcommand->cmd) {

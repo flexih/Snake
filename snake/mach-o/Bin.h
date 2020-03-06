@@ -15,8 +15,8 @@ namespace snake {
     public:
         ~Bin();
         bool read(std::string &path);
-        const Arch& arch() const {
-            return archs.front();
+        const Arch* arch() const {
+            return archs.empty() ? nullptr : &archs.front();
         }
     private:
         bool parseArch(char *p);

@@ -59,19 +59,23 @@ int main(int argc, char * argv[]) {
         Linkmap linkmap;
         linkmap.read(linkmapPath);
         auto arch = bin.arch();
+        if (arch == nullptr) {
+            std::cout << "snake: " << "mach_header.filetype != MH_EXECUTE" << std::endl;
+            exit(1);
+        }
         switch (function) {
             case 's': {
-                auto selectorsUnused = arch.ObjCSelectorsUnused();
+                auto selectorsUnused = arch->ObjCSelectorsUnused();
                 std::cout << (useJson ? Output::json.unusedSelectors(selectorsUnused, linkmap).str() + "\n" : Output::raw.unusedSelectors(selectorsUnused, linkmap).str());
                 break;
             }
             case 'c': {
-                auto classesUnused = arch.ObjCClassesUnused();
+                auto classesUnused = arch->ObjCClassesUnused();
                 std::cout << (useJson ? Output::json.unusedClasses(classesUnused, linkmap).str() + "\n" : Output::raw.unusedClasses(classesUnused, linkmap).str());
                 break;
             }
             case 'p': {
-                auto protocolsUnsued = arch.ObjCProtocolsUnused();
+                auto protocolsUnsued = arch->ObjCProtocolsUnused();
                 std::cout << (useJson ? Output::json.unusedProtocols(protocolsUnsued, linkmap).str() + "\n" : Output::raw.unusedProtocols(protocolsUnsued, linkmap).str());
                 break;
             }
