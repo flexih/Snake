@@ -25,6 +25,7 @@ namespace snake {
         virtual std::ostringstream unusedSelectors(std::map<std::string, ObjCClass> &selectorsUnused, Linkmap &linkmap) = 0;
         virtual std::ostringstream unusedProtocols(std::vector<std::string> &protocolsUnused, Linkmap &linkmap) = 0;
         virtual std::ostringstream unusedClasses(std::vector<std::string> &classesUnused, Linkmap &linkmap) = 0;
+        virtual std::ostringstream duplicatSelectors(std::vector<std::string> &selectors, Linkmap &linkmap) = 0;
         //(lib->(class->[meth]))
         typedef std::map<const std::string, std::map<std::string, std::vector<std::string>>> OPLibs;
         const OPLibs interact(std::map<std::string, ObjCClass> &selectorsUnused, Linkmap &linkmap);
@@ -37,6 +38,7 @@ namespace snake {
         std::ostringstream unusedSelectors(std::map<std::string, ObjCClass> &selectorsUnused, Linkmap &linkmap);
         std::ostringstream unusedProtocols(std::vector<std::string> &protocolsUnused, Linkmap &linkmap);
         std::ostringstream unusedClasses(std::vector<std::string> &classesUnused, Linkmap &linkmap);
+        std::ostringstream duplicatSelectors(std::vector<std::string> &selectors, Linkmap &linkmap);
     };
 
     class Json: Output {
@@ -44,6 +46,7 @@ namespace snake {
         std::ostringstream unusedSelectors(std::map<std::string, ObjCClass> &selectorsUnused, Linkmap &linkmap);
         std::ostringstream unusedProtocols(std::vector<std::string> &protocolsUnused, Linkmap &linkmap);
         std::ostringstream unusedClasses(std::vector<std::string> &classesUnused, Linkmap &linkmap);
+        std::ostringstream duplicatSelectors(std::vector<std::string> &selectors, Linkmap &linkmap);
     };
 }
 

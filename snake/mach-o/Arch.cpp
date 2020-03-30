@@ -218,10 +218,15 @@ namespace snake {
             auto methodList = (struct method_list_t *)POINTER(list);
             for (auto j = 0; j < methodList->method_count; ++j) {
                 auto m = (struct method_t *)&methodList->method_list + j;
+                auto name = std::string(POINTER(m->name));
                 if (isMeta) {
-                    objcClass->classMethods.insert(POINTER(m->name));
+                    if (!objcClass->classMethods.insert(std::move(name)).second) {
+                        objcClass->classMethodsDup.insert(std::move(name));
+                    }
                 } else {
-                    objcClass->instanceMethods.insert(POINTER(m->name));
+                    if (!objcClass->instanceMethods.insert(std::move(name)).second) {
+                        objcClass->instanceMethodsDup.insert(std::move(name));
+                    }
                 }
             }
         }
@@ -348,7 +353,7 @@ namespace snake {
             }
         }
     }
-    std::vector<std::string> Arch::parseDyld() {
+    std::vector<std::string> Arch::handleDyld() {
         std::vector<std::string> result;
         size_t offset = sizeof(mach_header);
         for (auto loadcommand : allLoadCommdands) {
@@ -423,12 +428,12 @@ namespace snake {
             auto objcClass = pair.second;
             for_each(objcClass.classMethods.begin(), objcClass.classMethods.end(), [&keys, &objcClass](auto &k){
                 std::stringstream os;
-                os << "+" << "[" << objcClass.name << " " << k << "]";
+                os << '+' << '[' << objcClass.name << ' ' << k << ']';
                 keys.push_back(os.str());
             });
             for_each(objcClass.instanceMethods.begin(), objcClass.instanceMethods.end(), [&keys, &objcClass](auto &k){
                 std::stringstream os;
-                os << "-" << "[" << objcClass.name << " " << k << "]";
+                os << '-' << '[' << objcClass.name << ' ' << k << ']';
                 keys.push_back(os.str());
             });
         }
@@ -515,6 +520,65 @@ namespace snake {
                 iter = result.erase(iter);
             } else {
                 ++iter;
+            }
+        }
+        return result;
+    }
+    std::vector<std::string> Arch::ObjCDuplicateSelectors() const {
+        std::vector<std::string> result;
+        for (auto &pair : allClasses) {
+            std::vector<const ObjCClass *> parts;
+            const auto &objcClass = pair.second;
+            for (const auto &cat : objcClass.cats) {
+                for (const auto &name : cat.instanceMethodsDup) {
+                    std::stringstream os;
+                    os << '-' << '[' << objcClass.name << '(' << cat.name << ')' << ' ' << name << ']';
+                    result.push_back(os.str());
+                }
+                for (const auto &name : cat.classMethodsDup) {
+                    std::stringstream os;
+                    os << '+' << '[' << objcClass.name << '(' << cat.name << ')' << ' ' << name << ']';
+                    result.push_back(os.str());
+                }
+                parts.push_back(&cat);
+            }
+            parts.push_back(&pair.second);
+            std::vector<std::string> output;
+            for (auto i = 0; i < parts.size() - 1; ++i) {
+                for (auto j = i + 1; j < parts.size(); ++j) {
+                    std::set_intersection(parts[i]->instanceMethods.begin(), parts[i]->instanceMethods.end(),
+                                          parts[j]->instanceMethods.begin(), parts[j]->instanceMethods.end(), std::back_inserter(output));
+                    if (!output.empty()) {
+                        for (auto &name : output) {
+                            std::stringstream os;
+                            if (i == 0) {
+                                os << '-' << '[' << objcClass.name << ' ' << name << ']';
+                            } else {
+                                os << '-' << '[' << objcClass.name << '(' << parts[i]->name << ')' << ' ' << name << ']';
+                            }
+                            os << " == ";
+                            os << '-' << '[' << objcClass.name << '(' << parts[j]->name << ')' << ' ' << name << ']';
+                            result.push_back(os.str());
+                        }
+                        output.clear();
+                    }
+                    std::set_intersection(parts[i]->classMethods.begin(), parts[i]->classMethods.end(),
+                                          parts[j]->classMethods.begin(), parts[j]->classMethods.end(), std::back_inserter(output));
+                    if (!output.empty()) {
+                        for (auto &name : output) {
+                            std::stringstream os;
+                            if (i == 0) {
+                                os << '+' << '[' << objcClass.name << ' ' << name << ']';
+                            } else {
+                                os << '+' << '[' << objcClass.name << '(' << parts[i]->name << ')' << ' ' << name << ']';
+                            }
+                            os << " == ";
+                            os << '+' << '[' << objcClass.name << '(' << parts[j]->name << ')' << ' ' << name << ']';
+                            result.push_back(os.str());
+                        }
+                        output.clear();
+                    }
+                }
             }
         }
         return result;

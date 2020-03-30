@@ -23,6 +23,7 @@ namespace snake {
         std::vector<std::string> ObjCSelectors() const;
         std::vector<std::string> ObjCClassesUnused() const;
         std::vector<std::string> ObjCProtocolsUnused() const;
+        std::vector<std::string> ObjCDuplicateSelectors() const;
         std::map<std::string, ObjCClass> ObjCSelectorsUnused() const;
     private:
         void parseSections();
@@ -33,7 +34,7 @@ namespace snake {
         void handleUsedClasses();
         void handleCategory();
         void handleSymtab();
-        std::vector<std::string> parseDyld();
+        std::vector<std::string> handleDyld();
         void handleObjCSections();
         std::set<std::string> ObjCProtocolsUsed() const;
         std::set<std::string> ObjCClassesUsed() const;

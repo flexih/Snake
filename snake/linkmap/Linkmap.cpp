@@ -147,8 +147,7 @@ namespace snake {
                         if (auto pmeth = strchr(p, op); auto split = strchr(pmeth + 1, ' ')) {
                             insert(index, pmeth + 2, split - pmeth - 2, pmeth, n - pmeth, sz);
                         }
-                    }
-                    else if (sscanf(p, "%*[0-9a-zA-Z]%*[ \t]%zx%*[ \t][%zu]%*[ \t]%*[l_]OBJC_PROTOCOL_$_%4095s", &sz, &index, buff) == 3) {
+                    } else if (sscanf(p, "%*[0-9a-zA-Z]%*[ \t]%zx%*[ \t][%zu]%*[ \t]%*[l_]OBJC_PROTOCOL_$_%4095s", &sz, &index, buff) == 3) {
                         std::string protocolName(buff);
                         if (!contains(protocols, protocolName)) {
                             protocols[std::move(protocolName)] = indexs[index];
@@ -208,5 +207,17 @@ namespace snake {
     }
     void Linkmap::addLibName(size_t index, std::string &name) {
         indexs[index] = name;
+    }
+    LMObjCClass *Linkmap::findClass(const char *name, const char *catName) {
+        auto iter = classes.find(name);
+        if (iter == classes.end()) return nullptr;
+        if (catName) {
+            for (auto j = iter->second.cats.begin(); j != iter->second.cats.end(); ++j) {
+                if (j->name.compare(catName) == 0) {
+                    return &(*j);
+                }
+            }
+        }
+        return &iter->second;
     }
 }

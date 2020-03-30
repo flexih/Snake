@@ -17,12 +17,13 @@ using namespace snake;
 int main(int argc, char * argv[]) {
     auto useJson = false;
     cxxopts::Options options("snake", "🐍 Snake, Yet Another Mach-O Unused ObjC Selector/Class/Protocol Detector\n");
-    options.custom_help("[-scp] [-l path] mach-o ...");
+    options.custom_help("[-dscp] [-l path] path/to/binary ...");
     options.positional_help("");
     options.add_options()
     ("s,selector", "Unused selectors")
     ("c,class", "Unused classes")
     ("p,protocol", "Unused protocoles")
+    ("d,duplicate", "Duplicate selectors")
     ("l,linkmap", "Linkmap file, which has selector size, library name", cxxopts::value<std::string>())
     ("i,input", "Mach-O binary", cxxopts::value<std::string>())
     ("j,json", "Output json format", cxxopts::value<bool>(useJson))
@@ -51,8 +52,10 @@ int main(int argc, char * argv[]) {
             function = 'c';
         } else if (result.count("p")) {
             function = 'p';
+        } else if (result.count("d")) {
+            function = 'd';
         } else {
-            throw cxxopts::option_not_present_exception("-scp");
+            throw cxxopts::option_not_present_exception("-dscp");
         }
         Bin bin;
         bin.read(machoPath);
@@ -77,6 +80,11 @@ int main(int argc, char * argv[]) {
             case 'p': {
                 auto protocolsUnsued = arch->ObjCProtocolsUnused();
                 std::cout << (useJson ? Output::json.unusedProtocols(protocolsUnsued, linkmap).str() + "\n" : Output::raw.unusedProtocols(protocolsUnsued, linkmap).str());
+                break;
+            }
+            case 'd': {
+                auto duplicateSelectors = arch->ObjCDuplicateSelectors();
+                std::cout << Output::raw.duplicatSelectors(duplicateSelectors, linkmap).str() << std::endl;
                 break;
             }
             default:

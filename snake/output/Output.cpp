@@ -410,7 +410,6 @@ namespace snake {
         }
         return stream;
     }
-    
     std::ostringstream Json::unusedProtocols(std::vector<std::string> &protocolsUnused, Linkmap &linkmap) {
         std::ostringstream stream;
         auto &allProtocols = linkmap.allProtocols();
@@ -517,5 +516,53 @@ namespace snake {
         }
         return stream;
     }
-    
+    std::ostringstream Raw::duplicatSelectors(std::vector<std::string> &selectors, Linkmap &linkmap) {
+        std::ostringstream stream;
+        auto &allClasses = linkmap.allClasses();
+        auto parseSelector = [&](const std::string &selector) {
+            char className[255], methName[255], catName[255];
+            char type;
+            if (sscanf(selector.c_str(), "%[-+][%[^ ] %[^]]", &type, className, methName) == 3) {
+                if (char *p = strchr(className, '(')) {
+                    auto len = strlen(className) + className - 1 - (p + 1);
+                    strncpy(catName, p + 1, len);
+                    catName[len] = '\0';
+                    p[0] = '\0';
+                    if (auto lmClass = linkmap.findClass(className, catName)) {
+                        std::stringstream os;
+                        os << type << '[' << className << '(' << catName << ')' << "#" << lmClass->libName << ' ' << methName << ']';
+                        return os.str();
+                    }
+                } else {
+                    if (auto lmClass = linkmap.findClass(className)) {
+                        std::stringstream os;
+                        os << type << '[' << className << "#" << lmClass->libName << ' ' << methName << ']';
+                        return os.str();
+                    }
+                }
+            }
+            return std::string();
+        };
+        if (allClasses.empty()) {
+            stream << "Total Duplicate Selector Count: " << selectors.size() << std::endl;
+            stream << std::endl;
+            for (auto &name : selectors) {
+                stream << name << std::endl;
+            }
+        } else {
+            for (auto &line : selectors) {
+                auto i = line.find(" == ");
+                if (i == std::string::npos) {
+                    stream << parseSelector(line) << std::endl;
+                } else {
+                    stream << parseSelector(line.substr(0, i)) << " == " << parseSelector(line.substr(i + 4, std::string::npos)) << std::endl;
+                }
+            }
+        }
+        return stream;
+    }
+    std::ostringstream Json::duplicatSelectors(std::vector<std::string> &selectors, Linkmap &linkmap) {
+        std::ostringstream stream;
+        return stream;
+    }
 }

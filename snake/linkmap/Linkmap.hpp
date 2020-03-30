@@ -43,6 +43,7 @@ namespace snake {
         const auto& allProtocols() const {
             return protocols;
         }
+        LMObjCClass *findClass(const char *name, const char* catName=nullptr);
     private:
         bool parse();
         void filter();
