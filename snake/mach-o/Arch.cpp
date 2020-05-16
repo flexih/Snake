@@ -329,6 +329,7 @@ namespace snake {
                     } else if (auto n = bindinfoSymAt(catRefPtr[i] + sizeof(uintptr_t))) {
                         if (auto i = n->find("_OBJC_CLASS_$_"); i != std::string::npos) {
                             objcClass = ObjCClassForName((n->substr(i + 14)).c_str());
+                            objcClass->externed = true;
                         } else {
                             objcClass = ObjCClassForName(n->c_str());
                         }
@@ -401,7 +402,9 @@ namespace snake {
         std::vector<std::string> keys;
         keys.reserve(allClasses.size());
         for (auto &pair : allClasses) {
-            keys.push_back(pair.first);
+            if (!pair.second.externed) {
+                keys.push_back(pair.first);
+            }
         }
         return keys;
     }
@@ -456,12 +459,13 @@ namespace snake {
         return result;
     }
     std::vector<std::string> Arch::ObjCClassesUnused() const {
+        auto classes = ObjCClasses();
         std::vector<std::string> unused;
-        unused.reserve(allClasses.size());
+        unused.reserve(classes.size());
         auto usedClasses = ObjCClassesUsed();
-        for (auto &c : allClasses) {
-            if (!contains(usedClasses, c.first)) {
-                unused.push_back(c.first);
+        for (auto &c : classes) {
+            if (!contains(usedClasses, c)) {
+                unused.push_back(c);
             }
         }
         return unused;

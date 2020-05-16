@@ -24,6 +24,8 @@ namespace snake {
         std::vector<std::string> ObjCClassesUnused() const;
         std::vector<std::string> ObjCProtocolsUnused() const;
         std::vector<std::string> ObjCDuplicateSelectors() const;
+        std::set<std::string> ObjCProtocolsUsed() const;
+        std::set<std::string> ObjCClassesUsed() const;
         std::map<std::string, ObjCClass> ObjCSelectorsUnused() const;
     private:
         void parseSections();
@@ -36,8 +38,6 @@ namespace snake {
         void handleSymtab();
         std::vector<std::string> handleDyld();
         void handleObjCSections();
-        std::set<std::string> ObjCProtocolsUsed() const;
-        std::set<std::string> ObjCClassesUsed() const;
         const char *POINTER(uintptr_t x);
         const char *OFFSET(uintptr_t x);
         ObjCClass* ObjCClassForName(const char *name);

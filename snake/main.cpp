@@ -11,12 +11,38 @@
 #include "Output.hpp"
 #include "cxxopts.hpp"
 #include "utility.hpp"
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
 
 using namespace snake;
 
+std::string findMachOPath(std::string &path) {
+    if (auto i = path.find_last_of(".app"); i != std::string::npos && i + 1 == path.size()) {
+        struct stat st;
+        if (stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+            if (auto dir = opendir(path.c_str())) {
+                struct dirent *dp;
+                while ((dp = readdir(dir)) != nullptr) {
+                    if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
+                        continue;
+                    }
+                    auto sub = path + "/" + dp->d_name;
+                    if (Bin::isMachO(sub)) {
+                        closedir(dir);
+                        return sub;
+                    }
+                }
+                closedir(dir);
+            }
+        }
+    }
+    return path;
+}
+
 int main(int argc, char * argv[]) {
     auto useJson = false;
-    cxxopts::Options options("snake", "🐍 Snake, Yet Another Mach-O Unused ObjC Selector/Class/Protocol Detector\n");
+    cxxopts::Options options("snake(1.5)", "🐍 Snake, Yet Another Mach-O Unused ObjC Selector/Class/Protocol Detector\n");
     options.custom_help("[-dscp] [-l path] path/to/binary ...");
     options.positional_help("");
     options.add_options()
@@ -24,6 +50,7 @@ int main(int argc, char * argv[]) {
     ("c,class", "Unused classes")
     ("p,protocol", "Unused protocoles")
     ("d,duplicate", "Duplicate selectors")
+    ("a,allclass", "All Classes")
     ("l,linkmap", "Linkmap file, which has selector size, library name", cxxopts::value<std::string>())
     ("i,input", "Mach-O binary", cxxopts::value<std::string>())
     ("j,json", "Output json format", cxxopts::value<bool>(useJson))
@@ -54,9 +81,12 @@ int main(int argc, char * argv[]) {
             function = 'p';
         } else if (result.count("d")) {
             function = 'd';
+        }  else if (result.count("a")) {
+            function = 'a';
         } else {
-            throw cxxopts::option_not_present_exception("-dscp");
+            throw cxxopts::option_not_present_exception("-dscpa");
         }
+        machoPath = findMachOPath(machoPath);
         Bin bin;
         bin.read(machoPath);
         Linkmap linkmap;
@@ -85,6 +115,13 @@ int main(int argc, char * argv[]) {
             case 'd': {
                 auto duplicateSelectors = arch->ObjCDuplicateSelectors();
                 std::cout << Output::raw.duplicatSelectors(duplicateSelectors, linkmap).str() << std::endl;
+                break;
+            }
+            case 'a': {
+                auto allClasses = arch->ObjCClasses();
+                for (auto &c : allClasses) {
+                    std::cout << c << std::endl;
+                }
                 break;
             }
             default:

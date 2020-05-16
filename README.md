@@ -22,6 +22,7 @@ See [SnakeKit][1]
 - [x] Unsued classes.
 - [x] Unused protocols.
 - [x] Duplicate selectors.
+- [x] All classes.
 - [x] Selector/Classes/Protocols sort by library, and selector size, if Linkmap file provided.
 - [x] Fast, a 460.6M binary and a 134.3M linkmap file costs 1.62s(3.7 GHz 6-Core Intel Core i5;40 GB 2667 MHz DDR4).
 
@@ -37,12 +38,13 @@ Usage:
   -c, --class        Unused classes
   -p, --protocol     Unused protocoles
   -d, --duplicate    Duplicate selectors
+  -a, --allclass     All Classes
   -l, --linkmap arg  Linkmap file, which has selector size, library name
   -j, --json         Output json format
       --help         Print help
 ```
 
-snake -l path/to/linkmap path/to/binary [-dscp]
+snake -l path/to/linkmap path/to/binary [-dscpa]
 
 ## Example
 bin/snake  -l demo/release/demo-LinkMap-normal-x86\_64.txt demo/release/demo.app/demo -c

@@ -18,6 +18,7 @@ namespace snake {
         const Arch* arch() const {
             return archs.empty() ? nullptr : &archs.front();
         }
+        static bool isMachO(std::string &path);
     private:
         bool parseArch(char *p);
         std::vector<Arch> archs;

@@ -24,6 +24,7 @@ namespace snake {
         std::set<std::string> classMethods;
         std::set<std::string> instanceMethodsDup;
         std::set<std::string> classMethodsDup;
+        bool externed {false};
         
         ObjCClass *catWithName(const char *n) {
             for (auto iter = cats.begin(); iter != cats.end(); ++iter) {

@@ -9,6 +9,7 @@
 #include "Bin.h"
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -84,5 +85,23 @@ namespace snake {
                 break;
         }
         return false;
+    }
+    bool Bin::isMachO(std::string &path) {
+        int fd = open(path.c_str(), O_RDONLY, S_IRUSR | S_IWUSR);
+        if (fd < 0) {
+            return false;
+        }
+        uint32_t magic = 0;
+        if (::read(fd, &magic, sizeof(magic)) != sizeof(magic)) {
+            close(fd);
+            return false;
+        }
+        close(fd);
+        return magic == FAT_MAGIC
+            || magic == FAT_CIGAM
+            || magic == FAT_MAGIC_64
+            || magic == FAT_CIGAM_64
+            || magic == MH_MAGIC_64
+            || magic == MH_CIGAM_64;
     }
 };

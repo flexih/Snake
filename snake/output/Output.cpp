@@ -561,6 +561,19 @@ namespace snake {
         }
         return stream;
     }
+    std::ostringstream Raw::printNames(std::vector<std::string> &classes, Linkmap &linkmap) {
+        std::ostringstream stream;
+        stream << "Total Count: " << classes.size() << std::endl;
+        stream << std::endl;
+        for (auto &c : classes) {
+            stream << c << std::endl;
+        }
+        return stream;
+    }
+    std::ostringstream Json::printNames(std::vector<std::string> &classes, Linkmap &linkmap) {
+        std::ostringstream stream;
+        return stream;
+    }
     std::ostringstream Json::duplicatSelectors(std::vector<std::string> &selectors, Linkmap &linkmap) {
         std::ostringstream stream;
         return stream;
