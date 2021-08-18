@@ -27,7 +27,7 @@ See [SnakeKit][1]
 - [x] Fast, a 460.6M binary and a 134.3M linkmap file costs 1.62s(3.7 GHz 6-Core Intel Core i5;40 GB 2667 MHz DDR4).
 
 ## Homebrew
-brew tap flexih/tap && brew install snake
+`brew tap flexih/tap && brew install snake`
 
 ## How To Use
 ```
